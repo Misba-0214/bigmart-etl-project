@@ -5,8 +5,7 @@ spark = SparkSession.builder\
         .appName("BigMart Silver Layer")\
         .getOrCreate()
 
-bronze_df = spark.read.format('parquet').load("data/bronze/bigmart")
-
+bronze_df = spark.table("workspace.bigmart.bronze_bigmart")
 silver_df = (
         bronze_df
         .withColumn("Item_Identifier", trim(col("Item_Identifier")))
@@ -26,7 +25,10 @@ silver_df = (
         .filter(col("Outlet_Identifier").isNotNull())
 )
 
-silver_df.write.mode("overwrite").parquet("data/silver/bigmart")
+silver_df.write \
+    .format("delta") \
+    .mode("overwrite") \
+    .saveAsTable("workspace.bigmart.silver_bigmart")
 
 silver_df.show(10)
 silver_df.printSchema()
